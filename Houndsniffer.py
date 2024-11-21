@@ -1,32 +1,33 @@
 import random
 import requests
+import time
 from colorama import Fore, Style, init
 from threading import Thread, Lock
 
 init(autoreset=True)
 
 ascii_art = """
-CAUTION.You are responsible for your actions. Developers assume no liability
-++++;;;;;;;;::::::::::::::::::::::::::::::::::**:::::::::::::::::::::::;;;;;
-+++++++;;;;;;;;;;:::;?%%%%+:;;;;::::;;::::::::;S%;:::;;;::::::::;;;:;;;;;;;;
-;++;;;;;;;;;;;;::+S##@@@@@#+::::::::::::::::::::%S;::::::::::::::::::;;;;;;;
-;;;;;;;;;;;;;;;:;S@@@@@@@@@+::::::::::::::::::::%#;::::::::::::;:;;;;;;;;;;;
-;;;;;;;;;;;;;;:::::*SS@@@@@@#:,:::::::::::::::::::%S:::::::::::::::::::;;;;;
-;;;;;;::::::::::::,,,;@@@@@@@S*;::;;;;;;;;;;;;;;;;*@:::::::::::::::::::;;;;;
-;+;;;;;;;::::::::::::S@%#@@@@@@@#S%%??;;;;;;;;;::;#S::::::::::::::::::;;;;;;
-;;;;;;;;:::::::::::::*?:%@@@@@@@@@@@@@@@@@@@@@@#S@#+::::::::::::::::::::;;;;
-;;;;::::::::::::::::::::S@@@@@@@@@@@@@@@@@@@@@@@@@#:,,,,::::::::::::;:;;::;;
-+++;;;;;;;;;;;::::;;;:::?@@@@@@@@@@@@@@@@@@@@@@@@@@S:::::::::;;;;:::::;;;;;;
-;;;;;;;;;;;;;:;;:::::::::?@@@@@@@@@@@@@@@@@@@@@@@@@#:::::::::::::::;;;;;;;;;
-;::::;;;;::::::::::::::,,,+@@@@@@@@@@#S%?**?@@@@@@@#:,,,,:::::::::::;;;;;;;;
-;;;HOUND SNIFFER:::;:::::::%@@@@@@*+;;;:::::?#@@@@@@%::::::;;:::;;;;;;;;;;;;
-;;;Author:NoahCross44::::::+@@S@@#::::::::,,,:%@@@@@@*,::::::::::::::::::;;;
-;;;Version:0.0.1::::::::::::S@?#@%:::::::::::,,;%@@@@@?:,:::::::::::::::::;;
-;;;;;;::::::::::::::::::::::?@*%@%:::::::::::::,,+#@SS@#+:::::::::::;;;;;;;;
-;;:::::::::::::::::::::::::,*@**@?::::,,,,,,,,::::+@%:S@%::::::::::::::::::;
-;;:::::::::::::::::::::::::,?@*%@?,:::::::,::::::::S@;:S#;:::::::::::::;;;;;
-;;;;;;;;;:::::::::::::::::*%@@%@S::::::::::::::::;%#S;:S@%:::::::::;;;;;;;;;
-;;;;;;::::::::::::::::::::++*%%?;:::::::::::::::,,:::,:*?+::::::::::::;;;;;;
+CAUTION. You are responsible for your actions. Developers assume no liability
+++++;;;;;;;;::::::::::::::::::::::::::::::::::;;:::::::::::::::::::::::;;;;;;
++++++++;;;;;;;;;;:::;?%%%%+:;;;;::::;;::::::::;S%;:::;;;::::::::;;;:;;;;;;;;;
+;++;;;;;;;;;;;;::+S##@@@@@#+:::::::::::::::::$%::%S;::::::::::::::::::;;;;;;;;
+;;;;;;;;;;;;;;;:;S@@@@@@@@@+:::::::::::::::::$%:::%#;::::::::::::;:;;;;;;;;;;;
+;;;;;;;;;;;;;;:::::*SS@@@@@@#:,:::::::::::::::::::%S:::::::::::::::::::;;;;;;
+;;;;;;::::::::::::,,,;@@@@@@@S*;::;;;;;;;;;;;;;;;;*@:::::::::::::::::::;;;;;;
+;+;;;;;;;::::::::::::S@%#@@@@@@@#S%%??;;;;;;;;;::;#S::::::::::::::::::;;;;;;;
+;;;;;;;;:::::::::::::*?:%@@@@@@@@@@@@@@@@@@@@@@#S@#+::::::::::::::::::::;;;;;
+;;;;::::::::::::::::::::S@@@@@@@@@@@@@@@@@@@@@@@@@#:,,,,::::::::::::;:;;::;;;
++++;;;;;;;;;;;::::;;;:::?@@@@@@@@@@@@@@@@@@@@@@@@@@S:::::::::;;;;:::::;;;;;;;
+;;;;;;;;;;;;;:;;:::::::::?@@@@@@@@@@@@@@@@@@@@@@@@@#:::::::::::::::;;;;;;;;;;
+;::::;;;;::::::::::::::,,,+@@@@@@@@@@#S%?**?@@@@@@@#:,,,,:::::::::::;;;;;;;;;
+;;;HOUND-SNIFFER:::;:::::::%@@@@@@*+;;;:::::?#@@@@@@%::::::;;:::;;;;;;;;;;;;;
+;;;Author:NoahCross44::::::+@@S@@#::::::::,,,:%@@@@@@*,::::::::::::::::::;;;;
+;;;Version:0.0.1::::::::::::S@?#@%:::::::::::,,;%@@@@@?:,:::::::::::::::::;;;
+;;;;;;::::::::::::::::::::::?@*%@%:::::::::::::,,+#@SS@#+:::::::::::;;;;;;;;;
+;;:::::::::::::::::::::::::,*@**@?::::,,,,,,,,::::+@%:S@%::::::::::::::::::;;
+;;:::::::::::::::::::::::::,?@*%@?,:::::::,::::::::S@;:S#;:::::::::::::;;;;;;
+;;;;;;;;;:::::::::::::::::*%@@%@S::::::::::::::::;%#S;:S@%:::::::::;;;;;;;;;;
+;;;;;;::::::::::::::::::::++*%%?;:::::::::::::::,,:::,:*?+::::::::::::;;;;;;;
 
 """
 
@@ -34,8 +35,9 @@ def print_welcome_screen():
     print(ascii_art)
 
 class UsernameSearch:
-    def __init__(self):
-        self.Platform = self.load_platforms("platforms.txt")  # Always open "platforms.txt"
+    def __init__(self, rate_limit=1.0):
+        self.rate_limit = rate_limit        
+        self.Platform = self.load_platforms("platforms.txt")
         self.UserAgents = [
     # Windows Browsers
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -88,6 +90,7 @@ class UsernameSearch:
 
     def verify_url(self, url):
         try:
+            time.sleep(self.rate_limit)  # Enforce rate limit
             response = requests.get(url, headers=self.get_headers(), timeout=5)
             return response.status_code == 200
         except requests.RequestException:
@@ -98,7 +101,10 @@ class UsernameSearch:
         print(f"{Fore.CYAN}Checking: {full_url}")
         if self.verify_url(full_url):
             with self.Lock:
-                valid_profiles[platform] = full_url
+                if username not in valid_profiles:
+                    valid_profiles[username] = {}
+                valid_profiles[username][platform] = full_url
+
 
     def perform_dorking(self, username):
         quoted_username = f'"{username}"'
@@ -145,26 +151,26 @@ class UsernameSearch:
         threads = []
         valid_profiles = {}
         usernames_to_search = [username]
-
+    
         if include_variations:
             usernames_to_search.extend(self.generate_middle_variations(username))
         if include_leet:
             usernames_to_search.extend(self.generate_leet_variations(username))
-        
-        usernames_to_search = list(set(usernames_to_search))
-
-        # Perform threaded search across platforms
-        for platform, base_url in self.Platform.items():
-            for user in usernames_to_search:
+    
+        usernames_to_search = list(set(usernames_to_search))  # Remove duplicates
+    
+        for user in usernames_to_search:
+            for platform, base_url in self.Platform.items():
                 thread = Thread(target=self.threaded_search, args=(platform, base_url, user, valid_profiles))
                 threads.append(thread)
                 thread.start()
-
-        # Wait for all threads to finish
+    
         for thread in threads:
             thread.join()
+    
+        return valid_profiles
 
-        return valid_profiles  
+
 
     def save_to_html(self, username, results, dorking_results=None, variations=None, leet_variations=None):
         html_template = f"""
@@ -190,16 +196,14 @@ class UsernameSearch:
                     background-color: #ffffff;
                     padding: 20px;
                     text-align: center;
-                    border-bottom: 2px solid #4caf50; /* Green accent */
+                    border-bottom: 2px solid #4caf50;
                 }}
                 .ascii-art {{
                     font-family: monospace;
                     font-size: 10px;
                     line-height: 1;
                     white-space: pre;
-                    display: inline-block;
-                    margin: 0 auto;
-                    color: #4caf50; /* Green color for ASCII art */
+                    color: #4caf50;
                 }}
                 .content {{
                     padding: 20px;
@@ -208,11 +212,11 @@ class UsernameSearch:
                 }}
                 h1 {{
                     text-align: center;
-                    color: #2e7d32; /* Darker green */
+                    color: #2e7d32;
                     margin-bottom: 20px;
                 }}
                 h2 {{
-                    color: #2e7d32; /* Darker green */
+                    color: #2e7d32;
                     border-bottom: 2px solid #4caf50;
                     padding-bottom: 10px;
                 }}
@@ -242,7 +246,7 @@ class UsernameSearch:
                     border-bottom: 1px solid #ddd;
                 }}
                 th {{
-                    background: #e8f5e9; /* Light green background */
+                    background: #e8f5e9;
                     font-weight: bold;
                 }}
                 tr:hover {{
@@ -270,35 +274,39 @@ class UsernameSearch:
             <div class="content">
                 <h1>Search Results for '{username}'</h1>
                 <div class="results">
-            """
+        """
 
         if results:
             html_template += """
-                    <h2>Platform Results</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Platform</th>
-                                <th>URL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <h2>Platform Results</h2>
             """
-            for platform, url in results.items():
-                html_template += f"<tr><td>{platform}</td><td><a href='{url}' target='_blank'>{url}</a></td></tr>"
-            html_template += "</tbody></table>"
+            for user, user_results in results.items():
+                html_template += f"""
+                <h3>Results for '{user}'</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """
+                for platform, url in user_results.items():
+                    html_template += f"<tr><td>{platform}</td><td><a href='{url}' target='_blank'>{url}</a></td></tr>"
+                html_template += "</tbody></table>"
 
         if dorking_results:
             html_template += """
-                    <h2>Dorking Results</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Search Engine</th>
-                                <th>Query URL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <h2>Dorking Results</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Search Engine</th>
+                            <th>Query URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             """
             for engine, url in dorking_results.items():
                 html_template += f"<tr><td>{engine}</td><td><a href='{url}' target='_blank'>{url}</a></td></tr>"
@@ -306,8 +314,8 @@ class UsernameSearch:
 
         if variations:
             html_template += """
-                    <h2>Generated Variations</h2>
-                    <ul>
+                <h2>Generated Variations</h2>
+                <ul>
             """
             for var in variations:
                 html_template += f"<li>{var}</li>"
@@ -315,8 +323,8 @@ class UsernameSearch:
 
         if leet_variations:
             html_template += """
-                    <h2>Leet-Speak Variations</h2>
-                    <ul>
+                <h2>Leet-Speak Variations</h2>
+                <ul>
             """
             for var in leet_variations:
                 html_template += f"<li>{var}</li>"
@@ -326,7 +334,7 @@ class UsernameSearch:
                 </div>
             </div>
             <footer>
-               You are responsible for your actions. Developers assume no liability and are not responsible for any misuse or damage. 
+                You are responsible for your actions. Developers assume no liability and are not responsible for any misuse or damage.
             </footer>
         </body>
         </html>
@@ -337,20 +345,22 @@ class UsernameSearch:
             file.write(html_template)
         print(f"{Fore.GREEN}Results saved to {filename}.")
 
+
 def main():
     print_welcome_screen()
-    username_search = UsernameSearch()
-
+    rate_limit = float(input(f"{Fore.YELLOW}Enter rate limit (seconds between requests, default is 1.0): {Style.RESET_ALL}") or 1.0)
+    username_search = UsernameSearch(rate_limit=rate_limit)
+        
     username = input(f"{Fore.YELLOW}Enter username: {Style.RESET_ALL}").strip()
     include_variations = input(f"{Fore.YELLOW}Include variations? (y/n): {Style.RESET_ALL}").lower() == 'y'
     include_leet = input(f"{Fore.YELLOW}Include leet variations? (y/n): {Style.RESET_ALL}").lower() == 'y'
     perform_dorking = input(f"{Fore.YELLOW}Perform dorking? (y/n): {Style.RESET_ALL}").lower() == 'y'
-
+        
     variations = username_search.generate_middle_variations(username) if include_variations else []
     leet_variations = username_search.generate_leet_variations(username) if include_leet else []
     results = username_search.search_user(username, include_variations, include_leet)
     dorking_results = username_search.perform_dorking(username) if perform_dorking else None
-
+        
     username_search.save_to_html(username, results, dorking_results, variations, leet_variations)
 
 if __name__ == "__main__":
