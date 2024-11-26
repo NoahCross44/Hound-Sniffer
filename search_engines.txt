@@ -1,0 +1,10 @@
+# Search Engine Name, Query Format
+Google (EN),https://www.google.com/search?q=inurl:{username}
+Bing (EN),https://www.bing.com/search?q=inurl:{username}
+DuckDuckGo (EN),https://duckduckgo.com/?q=inurl:{username}
+Yahoo (EN),https://search.yahoo.com/search?p=inurl:{username}
+Brave (EN),https://search.brave.com/search?q=inurl:{username}
+Yandex (RU),https://yandex.com/search/?text=inurl:{username}
+Baidu (CH),https://www.baidu.com/s?wd=inurl:{username}
+Naver (SK),https://search.naver.com/search.naver?query=inurl:{username}
+
