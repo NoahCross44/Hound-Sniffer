@@ -2,14 +2,15 @@
 <img width="766" src="https://github.com/user-attachments/assets/10de194d-7143-4946-9d91-455a63e54690">
 
 # Overview
-Hound-Sniffer is a username reconnaissance and OSINT tool designed to search for usernames across multiple platforms and perform search engine dorking. It generates HTML reports to display the results in an interactive and user-friendly format.
+Hound-Sniffer is a username reconnaissance and OSINT (Open-Source Intelligence) toolkit that helps researchers, investigators, and cybersecurity professionals locate a given username across 800+ platforms and services. It leverages both a curated OSINT framework and customizable dorking queries to produce comprehensive HTML reports, making it easier to visualize and analyze results.
 
 # Types of searches
-* Platform Search: General search for usernames on platforms defined in platforms.txt.
+* Platform Search: searches for usernames on platforms defined in platforms.txt.
 * Dorking search:  Perform search engine queries on platforms like Google, Bing, and DuckDuckGo.
 
 # Features
 * Multi-threading: Quickly scans multiple platforms using threads for better performance.
+* Advanced Dorking: utilizes dorking to search intxt and inurl
 * Customizable User-Agent Headers: Rotates through user agents to avoid detection or rate limiting.
 * Customizable Platform searches with .txt file
 * Professional HTML Reports
