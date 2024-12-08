@@ -6,7 +6,6 @@ from threading import Thread, Lock
 init(autoreset=True)
 
 ascii_art = """
-CAUTION.You are responsible for your actions. Developers assume no liability
 ++++;;;;;;;;::::::::::::::::::::::::::::::::::**:::::::::::::::::::::::;;;;;
 +++++++;;;;;;;;;;:::;?%%%%+:;;;;::::;;::::::::;S%;:::;;;::::::::;;;:;;;;;;;;
 ;++;;;;;;;;;;;;::+S##@@@@@#+::::::::::::::::::::%S;::::::::::::::::::;;;;;;;
@@ -14,11 +13,11 @@ CAUTION.You are responsible for your actions. Developers assume no liability
 ;;;;;;;;;;;;;;:::::*SS@@@@@@#:,:::::::::::::::::::%S:::::::::::::::::::;;;;;
 ;;;;;;::::::::::::,,,;@@@@@@@S*;::;;;;;;;;;;;;;;;;*@:::::::::::::::::::;;;;;
 ;+;;;;;;;::::::::::::S@%#@@@@@@@#S%%??;;;;;;;;;::;#S::::::::::::::::::;;;;;;
-;;;;;;;;;:::::::::::::*?:%@@@@@@@@@@@@@@@@@@@@@@#S@#+::::::::::::::::::::;;;;
+;;;;;;;;;:::::::::::::*?:%@@@@@@@@@@@@@@@@@@@@@@#S@#+::::::::::::::::::::;;;
 ;;;;::::::::::::::::::::S@@@@@@@@@@@@@@@@@@@@@@@@@#:,,,,::::::::::::;:;;::;;
 +++;;;;;;;;;;;::::;;;:::?@@@@@@@@@@@@@@@@@@@@@@@@@@S:::::::::;;;;:::::;;;;;;
 ;;;;;;;;;;;;;:;;:::::::::?@@@@@@@@@@@@@@@@@@@@@@@@@#:::::::::::::::;;;;;;;;;
-;;;::::;;;::::::::::::::,,,+@@@@@@@@@@#S%?**?@@@@@@@#:,,,,:::::::::::;;;;;;;;
+;;;::::;;;::::::::::::::,,,+@@@@@@@@@@#S%?**?@@@@@@@#:,,,,:::::::::::;;;;;;;
 ;;;HOUND SNIFFER:::;:::::::%@@@@@@*+;;;:::::?#@@@@@@%::::::;;:::;;;;;;;;;;;;
 ;;;Author:NoahCross44::::::+@@S@@#::::::::,,,:%@@@@@@*,::::::::::::::::::;;;
 ;;;Version:0.0.1::::::::::::S@?#@%:::::::::::,,;%@@@@@?:,:::::::::::::::::;;
@@ -34,7 +33,7 @@ def print_welcome_screen():
 
 class UsernameSearch:
     def __init__(self):
-        self.Platform = self.load_platforms("platforms.txt")  # Always open "platforms.txt"
+        self.Platform = self.load_platforms("platforms.txt") 
         self.UserAgents = [
             # Windows Browsers
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -119,7 +118,7 @@ class UsernameSearch:
         return search_engines
 
     def perform_dorking(self, username):
-        search_engines = self.load_search_engines("search_engines.txt")  # Load from file
+        search_engines = self.load_search_engines("search_engines.txt")  
         results = {}
         print(f"{Fore.BLUE}\nPerforming dorking for username '{username}':{Style.RESET_ALL}")
         for engine, query_format in search_engines.items():
@@ -306,12 +305,26 @@ def main():
     username_search = UsernameSearch()
 
     username = input(f"{Fore.YELLOW}Enter username: {Style.RESET_ALL}").strip()
-    perform_dorking = input(f"{Fore.YELLOW}Perform dorking? (y/n): {Style.RESET_ALL}").lower() == 'y'
 
-    results = username_search.search_user(username)
-    dorking_results = username_search.perform_dorking(username) if perform_dorking else None
+    while True:
+        choice = input(
+            f"{Fore.YELLOW}Enter (1) to use the predetermined OSINT platform list only\n"
+            f"Enter (2) to perform manual dorking + OSINT platform search: {Style.RESET_ALL}"
+        ).strip()
 
-    username_search.save_to_html(username, results, dorking_results)
+        if choice == '1':
+            # OSINT only
+            results = username_search.search_user(username)
+            username_search.save_to_html(username, results)
+            break
+        elif choice == '2':
+            # OSINT + dorking
+            results = username_search.search_user(username)
+            dorking_results = username_search.perform_dorking(username)
+            username_search.save_to_html(username, results, dorking_results)
+            break
+        else:
+            print(f"{Fore.RED}Invalid selection. Please enter 1 or 2.{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     main()
