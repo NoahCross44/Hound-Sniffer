@@ -16,7 +16,8 @@ Hound-Sniffer is a username reconnaissance and OSINT (Open-Source Intelligence) 
 * Professional HTML Reports
  
     
-<img width="1440" src="https://github.com/user-attachments/assets/0f9e62c8-255e-4b14-a87b-6e1eb0bfa894">
+<img width="766" alt="Screenshot 2024-12-08 at 2 08 14 AM" src="https://github.com/user-attachments/assets/333bd939-1295-446a-a364-b79aba990ddf">
+
 
 
 # Prerequisites
